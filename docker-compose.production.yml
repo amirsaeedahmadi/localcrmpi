@@ -1,0 +1,43 @@
+networks:
+  broker-net:
+    external: true
+  proxy-net:
+    external: true
+
+services:
+  crmdjango: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: crmapi_production_django
+    container_name: crmapi_production_django
+    restart: always
+#    depends_on:
+#      - postgres
+#      - redis
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.production/.django
+    environment:
+      DJANGO_SETTINGS_MODULE: "config.settings"
+    command: /start
+    networks:
+      - default
+      - proxy-net
+      - broker-net
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy-net
+      - traefik.http.routers.userapi.entrypoints=websecure
+      - traefik.http.routers.userapi.rule=(Host(`api.panel.darvagcloud.com`) || Host(`api.admin.panel.darvagcloud.com`)) && PathRegexp(`^/((en|fa)/)?crm`)
+      - traefik.http.routers.userapi.tls=true
+      - traefik.http.services.userapi.loadbalancer.server.port=5000
+
+  consumer:
+    <<: *django
+    image: crmapi_production_consumer
+    container_name: crmapi_production_consumer
+    command: python manage.py consumer
+    labels:
+      - traefik.enable=false

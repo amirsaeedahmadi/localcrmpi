@@ -1,0 +1,10 @@
+-r production.txt
+
+# Testing
+# ------------------------------------------------------------------------------
+pre-commit==3.7.1  # https://github.com/pre-commit/pre-commit
+pytest==8.2.2  # https://github.com/pytest-dev/pytest
+
+# Code quality
+# ------------------------------------------------------------------------------
+ruff==0.5.0  # https://github.com/astral-sh/ruff
